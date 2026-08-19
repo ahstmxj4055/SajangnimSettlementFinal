@@ -9,35 +9,29 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.7'
-
       - name: Extract project
         run: |
           rm -rf project
           mkdir project
-          unzip -q SajangnimSettlement_Android_v12_SETTINGS_BACK_FINAL.zip -d project
-
+          unzip -q SajangnimSettlement_Android_v13_POLISH_BACKUP_FINAL.zip -d project
       - name: Restore signing keystore
         working-directory: project/SajangnimSettlement
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
           printf '%s' "$KEYSTORE_BASE64" | base64 --decode > app/release-key.jks
-
       - name: Build signed release APK
         working-directory: project/SajangnimSettlement
         env:
@@ -46,9 +40,8 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: gradle assembleRelease
-
       - name: Upload signed APK
         uses: actions/upload-artifact@v4
         with:
-          name: SajangnimSettlement-v12-SETTINGS-BACK-FINAL-APK
+          name: SajangnimSettlement-v13-POLISH-BACKUP-FINAL-APK
           path: project/SajangnimSettlement/app/build/outputs/apk/release/app-release.apk
