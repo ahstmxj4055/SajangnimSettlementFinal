@@ -29,7 +29,7 @@ jobs:
         run: |
           rm -rf project
           mkdir project
-          unzip -q SajangnimSettlement_Android_v7_MOBILE_SAFE.zip -d project
+          unzip -q SajangnimSettlement_Android_v8_DELETE_DIALOG.zip -d project
 
       - name: Build APK
         working-directory: project/SajangnimSettlement
@@ -38,5 +38,6 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: SajangnimSettlement-v7-APK
+          name: SajangnimSettlement-v8-APK
           path: project/SajangnimSettlement/app/build/outputs/apk/debug/app-debug.apk
+
