@@ -1,8 +1,10 @@
 name: Android APK Build
+
 on:
   push:
     branches: [main]
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -22,7 +24,7 @@ jobs:
         run: |
           rm -rf project
           mkdir project
-          unzip -q SajangnimSettlement_Android_v17_SLIM_HEADER_FINAL.zip -d project
+          unzip -q SajangnimSettlement_Android_v18_PRIVACY_TOAST_FINAL.zip -d project
       - name: Restore signing keystore
         working-directory: project/SajangnimSettlement
         env:
@@ -39,5 +41,5 @@ jobs:
       - name: Upload signed APK
         uses: actions/upload-artifact@v4
         with:
-          name: SajangnimSettlement-v17-SLIM-HEADER-FINAL-APK
+          name: SajangnimSettlement-v18-PRIVACY-TOAST-FINAL-APK
           path: project/SajangnimSettlement/app/build/outputs/apk/release/app-release.apk
