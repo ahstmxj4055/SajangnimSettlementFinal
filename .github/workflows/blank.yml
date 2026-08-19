@@ -29,14 +29,26 @@ jobs:
         run: |
           rm -rf project
           mkdir project
-          unzip -q SajangnimSettlement_Android_v9_ICON_DIALOG.zip -d project
+          unzip -q SajangnimSettlement_Android_v10_FINAL.zip -d project
 
-      - name: Build APK
+      - name: Restore signing keystore
         working-directory: project/SajangnimSettlement
-        run: gradle assembleDebug
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 --decode > release-key.jks
 
-      - name: Upload APK
+      - name: Build signed release APK
+        working-directory: project/SajangnimSettlement
+        env:
+          KEYSTORE_FILE: release-key.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: gradle assembleRelease
+
+      - name: Upload signed APK
         uses: actions/upload-artifact@v4
         with:
-          name: SajangnimSettlement-v9-APK
-          path: project/SajangnimSettlement/app/build/outputs/apk/debug/app-debug.apk
+          name: SajangnimSettlement-v10-FINAL-APK
+          path: project/SajangnimSettlement/app/build/outputs/apk/release/app-release.apk
