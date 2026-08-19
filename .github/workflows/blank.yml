@@ -29,7 +29,7 @@ jobs:
         run: |
           rm -rf project
           mkdir project
-          unzip -q SajangnimSettlement_Android_v11_SETTINGS_FINAL.zip -d project
+          unzip -q SajangnimSettlement_Android_v12_SETTINGS_BACK_FINAL.zip -d project
 
       - name: Restore signing keystore
         working-directory: project/SajangnimSettlement
@@ -50,5 +50,5 @@ jobs:
       - name: Upload signed APK
         uses: actions/upload-artifact@v4
         with:
-          name: SajangnimSettlement-v11-SETTINGS-FINAL-APK
+          name: SajangnimSettlement-v12-SETTINGS-BACK-FINAL-APK
           path: project/SajangnimSettlement/app/build/outputs/apk/release/app-release.apk
