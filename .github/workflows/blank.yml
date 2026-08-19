@@ -29,7 +29,7 @@ jobs:
         run: |
           rm -rf project
           mkdir project
-          unzip -q SajangnimSettlement_Android_v4_FIX.zip -d project
+          unzip -q SajangnimSettlement_Android_v6_MOBILE_FIT.zip -d project
 
       - name: Build APK
         working-directory: project/SajangnimSettlement
@@ -38,5 +38,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: SajangnimSettlement-v4-APK
+          name: SajangnimSettlement-v6-APK
           path: project/SajangnimSettlement/app/build/outputs/apk/debug/app-debug.apk
