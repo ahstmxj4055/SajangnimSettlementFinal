@@ -19,7 +19,7 @@ jobs:
         run: |
           rm -rf project
           mkdir project
-          unzip -q SajangnimSettlement_Android_v20_SAFE_FIX_FINAL.zip -d project
+          unzip -q SajangnimSettlement_Android_v21_TODAY_FIX_FINAL.zip -d project
       - name: Restore signing keystore
         working-directory: project/SajangnimSettlement
         env:
@@ -35,5 +35,5 @@ jobs:
         run: gradle assembleRelease
       - uses: actions/upload-artifact@v4
         with:
-          name: SajangnimSettlement-v20-SAFE-FIX-FINAL-APK
+          name: SajangnimSettlement-v21-TODAY-FIX-FINAL-APK
           path: project/SajangnimSettlement/app/build/outputs/apk/release/app-release.apk
