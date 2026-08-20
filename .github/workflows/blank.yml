@@ -19,7 +19,7 @@ jobs:
         run: |
           rm -rf project
           mkdir project
-          unzip -q SajangnimSettlement_Android_v23_BACKUP_TOAST_FINAL.zip -d project
+          unzip -q SajangnimSettlement_Android_v24_APPINFO_SLIM_FINAL.zip -d project
       - name: Restore signing keystore
         working-directory: project/SajangnimSettlement
         env:
@@ -35,5 +35,5 @@ jobs:
         run: gradle assembleRelease
       - uses: actions/upload-artifact@v4
         with:
-          name: SajangnimSettlement-v23-BACKUP-TOAST-FINAL-APK
+          name: SajangnimSettlement-v24-APPINFO-SLIM-FINAL-APK
           path: project/SajangnimSettlement/app/build/outputs/apk/release/app-release.apk
