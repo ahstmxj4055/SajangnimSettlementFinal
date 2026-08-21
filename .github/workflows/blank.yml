@@ -24,7 +24,7 @@ jobs:
         run: |
           rm -rf project
           mkdir project
-          unzip -q SajangnimSettlement_Android_v40_RESTORE_PICKER_FIX_FINAL.zip -d project
+          unzip -q SajangnimSettlement_Android_v41_CODE_CLEAN_STABLE.zip -d project
       - name: Restore signing keystore
         working-directory: project/SajangnimSettlement
         env:
@@ -40,9 +40,9 @@ jobs:
         run: gradle assembleRelease bundleRelease
       - uses: actions/upload-artifact@v4
         with:
-          name: SajangnimSettlement-v40-API36-APK
+          name: SajangnimSettlement-v41-API36-APK
           path: project/SajangnimSettlement/app/build/outputs/apk/release/app-release.apk
       - uses: actions/upload-artifact@v4
         with:
-          name: SajangnimSettlement-v40-API36-PLAY-AAB
+          name: SajangnimSettlement-v41-API36-PLAY-AAB
           path: project/SajangnimSettlement/app/build/outputs/bundle/release/app-release.aab
