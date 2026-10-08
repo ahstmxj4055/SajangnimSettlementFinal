@@ -1,4 +1,4 @@
-name: Sajangnim Settlement 1.0.10 Live Ads UMP Build
+name: Sajangnim Settlement 1.0.11 Play Warnings Fix Build
 
 on:
   workflow_dispatch:
@@ -33,11 +33,11 @@ jobs:
         with:
           gradle-version: '8.11.1'
 
-      - name: Extract 1.0.10 project
+      - name: Extract 1.0.11 project
         shell: bash
         run: |
           set -e
-          ZIP_FILE="SajangnimSettlement_Android_v69_LIVE_ADS_UMP_1.0.10.zip"
+          ZIP_FILE="SajangnimSettlement_Android_v72_PLAY_WARNINGS_FIX_1.0.11.zip"
           test -f "$ZIP_FILE" || (echo "Missing $ZIP_FILE" && exit 1)
           rm -rf project
           mkdir project
@@ -64,18 +64,25 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: gradle assembleRelease bundleRelease
 
-      - name: Collect APK and AAB
+      - name: Collect APK, AAB and mapping
         shell: bash
         run: |
           set -e
           mkdir -p artifacts
-          cp project/SajangnimSettlement/app/build/outputs/apk/release/app-release.apk \
-            artifacts/SajangnimSettlement-1.0.10-LIVE-ADS-UMP.apk
-          cp project/SajangnimSettlement/app/build/outputs/bundle/release/app-release.aab \
-            artifacts/SajangnimSettlement-1.0.10-LIVE-ADS-UMP.aab
 
-      - name: Upload APK and AAB
+          cp project/SajangnimSettlement/app/build/outputs/apk/release/app-release.apk \
+            artifacts/SajangnimSettlement-1.0.11-PLAY-WARNINGS-FIX.apk
+
+          cp project/SajangnimSettlement/app/build/outputs/bundle/release/app-release.aab \
+            artifacts/SajangnimSettlement-1.0.11-PLAY-WARNINGS-FIX.aab
+
+          if [ -f project/SajangnimSettlement/app/build/outputs/mapping/release/mapping.txt ]; then
+            cp project/SajangnimSettlement/app/build/outputs/mapping/release/mapping.txt \
+              artifacts/mapping-1.0.11.txt
+          fi
+
+      - name: Upload APK, AAB and mapping
         uses: actions/upload-artifact@v4
         with:
-          name: SajangnimSettlement-1.0.10-LIVE-ADS-UMP
+          name: SajangnimSettlement-1.0.11-PLAY-WARNINGS-FIX
           path: artifacts/*
