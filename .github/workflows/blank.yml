@@ -1,4 +1,4 @@
-name: Sajangnim Settlement 1.0.11 FINAL Build
+name: Sajangnim Settlement 1.0.11 Full Audit Fix Build
 
 on:
   workflow_dispatch:
@@ -37,30 +37,22 @@ jobs:
         shell: bash
         run: |
           set -e
-          ZIP_FILE="SajangnimSettlement_Android_v79_FINAL_1.0.11.zip"
+          ZIP_FILE="SajangnimSettlement_Android_v81_FULL_AUDIT_FIX_1.0.11.zip"
           test -f "$ZIP_FILE" || (echo "Missing $ZIP_FILE" && exit 1)
-
           rm -rf project
           mkdir project
           unzip -q "$ZIP_FILE" -d project
-
           test -f project/SajangnimSettlement/settings.gradle.kts
-
           echo "===== BUILD TARGET ====="
-          grep -E "versionCode|versionName" \
-            project/SajangnimSettlement/app/build.gradle.kts
+          grep -E "versionCode|versionName" project/SajangnimSettlement/app/build.gradle.kts
 
       - name: Restore fixed release keystore
         working-directory: project/SajangnimSettlement
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
-          test -n "$KEYSTORE_BASE64" || \
-            (echo "Missing KEYSTORE_BASE64 secret" && exit 1)
-
-          printf '%s' "$KEYSTORE_BASE64" | \
-            base64 --decode > app/release-key.jks
-
+          test -n "$KEYSTORE_BASE64" || (echo "Missing KEYSTORE_BASE64 secret" && exit 1)
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > app/release-key.jks
           test -s app/release-key.jks
 
       - name: Build signed Release APK and AAB
@@ -78,24 +70,16 @@ jobs:
           set -e
           mkdir -p artifacts
 
-          cp \
-            project/SajangnimSettlement/app/build/outputs/apk/release/app-release.apk \
-            artifacts/SajangnimSettlement-1.0.11-FINAL.apk
+          cp project/SajangnimSettlement/app/build/outputs/apk/release/app-release.apk             artifacts/SajangnimSettlement-1.0.11-FULL-AUDIT-FIX.apk
 
-          cp \
-            project/SajangnimSettlement/app/build/outputs/bundle/release/app-release.aab \
-            artifacts/SajangnimSettlement-1.0.11-FINAL.aab
+          cp project/SajangnimSettlement/app/build/outputs/bundle/release/app-release.aab             artifacts/SajangnimSettlement-1.0.11-FULL-AUDIT-FIX.aab
 
-          if [ -f \
-            project/SajangnimSettlement/app/build/outputs/mapping/release/mapping.txt ]; then
-
-            cp \
-              project/SajangnimSettlement/app/build/outputs/mapping/release/mapping.txt \
-              artifacts/mapping-1.0.11.txt
+          if [ -f project/SajangnimSettlement/app/build/outputs/mapping/release/mapping.txt ]; then
+            cp project/SajangnimSettlement/app/build/outputs/mapping/release/mapping.txt               artifacts/mapping-1.0.11.txt
           fi
 
       - name: Upload APK, AAB and mapping
         uses: actions/upload-artifact@v4
         with:
-          name: SajangnimSettlement-1.0.11-FINAL
+          name: SajangnimSettlement-1.0.11-FULL-AUDIT-FIX
           path: artifacts/*
