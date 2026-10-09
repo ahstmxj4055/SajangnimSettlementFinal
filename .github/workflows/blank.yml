@@ -1,4 +1,4 @@
-name: Sajangnim Settlement 1.0.11 Compact Header Match Build
+name: Sajangnim Settlement 1.0.11 FINAL Build
 
 on:
   workflow_dispatch:
@@ -37,21 +37,16 @@ jobs:
         shell: bash
         run: |
           set -e
-
-          ZIP_FILE="SajangnimSettlement_Android_v78_COMPACT_HEADER_MATCH_1.0.11.zip"
-
-          test -f "$ZIP_FILE" || \
-            (echo "Missing $ZIP_FILE" && exit 1)
+          ZIP_FILE="SajangnimSettlement_Android_v79_FINAL_1.0.11.zip"
+          test -f "$ZIP_FILE" || (echo "Missing $ZIP_FILE" && exit 1)
 
           rm -rf project
           mkdir project
-
           unzip -q "$ZIP_FILE" -d project
 
           test -f project/SajangnimSettlement/settings.gradle.kts
 
           echo "===== BUILD TARGET ====="
-
           grep -E "versionCode|versionName" \
             project/SajangnimSettlement/app/build.gradle.kts
 
@@ -59,7 +54,6 @@ jobs:
         working-directory: project/SajangnimSettlement
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-
         run: |
           test -n "$KEYSTORE_BASE64" || \
             (echo "Missing KEYSTORE_BASE64 secret" && exit 1)
@@ -71,31 +65,26 @@ jobs:
 
       - name: Build signed Release APK and AAB
         working-directory: project/SajangnimSettlement
-
         env:
           KEYSTORE_FILE: release-key.jks
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-
-        run: |
-          gradle assembleRelease bundleRelease
+        run: gradle assembleRelease bundleRelease
 
       - name: Collect APK, AAB and mapping
         shell: bash
-
         run: |
           set -e
-
           mkdir -p artifacts
 
           cp \
             project/SajangnimSettlement/app/build/outputs/apk/release/app-release.apk \
-            artifacts/SajangnimSettlement-1.0.11-COMPACT-HEADER-MATCH.apk
+            artifacts/SajangnimSettlement-1.0.11-FINAL.apk
 
           cp \
             project/SajangnimSettlement/app/build/outputs/bundle/release/app-release.aab \
-            artifacts/SajangnimSettlement-1.0.11-COMPACT-HEADER-MATCH.aab
+            artifacts/SajangnimSettlement-1.0.11-FINAL.aab
 
           if [ -f \
             project/SajangnimSettlement/app/build/outputs/mapping/release/mapping.txt ]; then
@@ -107,7 +96,6 @@ jobs:
 
       - name: Upload APK, AAB and mapping
         uses: actions/upload-artifact@v4
-
         with:
-          name: SajangnimSettlement-1.0.11-COMPACT-HEADER-MATCH
+          name: SajangnimSettlement-1.0.11-FINAL
           path: artifacts/*
