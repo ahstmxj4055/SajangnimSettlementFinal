@@ -1,4 +1,4 @@
-name: Sajangnim Settlement 1.0.11 AD ID Fix Build
+name: Sajangnim Settlement 1.0.11 Verified Layout Fix Build
 
 on:
   workflow_dispatch:
@@ -37,7 +37,7 @@ jobs:
         shell: bash
         run: |
           set -e
-          ZIP_FILE="SajangnimSettlement_Android_v73_AD_ID_FIX_1.0.11.zip"
+          ZIP_FILE="SajangnimSettlement_Android_v75_VERIFIED_LAYOUT_FIX_1.0.11.zip"
           test -f "$ZIP_FILE" || (echo "Missing $ZIP_FILE" && exit 1)
           rm -rf project
           mkdir project
@@ -71,10 +71,10 @@ jobs:
           mkdir -p artifacts
 
           cp project/SajangnimSettlement/app/build/outputs/apk/release/app-release.apk \
-            artifacts/SajangnimSettlement-1.0.11-AD-ID-FIX.apk
+            artifacts/SajangnimSettlement-1.0.11-VERIFIED-LAYOUT-FIX.apk
 
           cp project/SajangnimSettlement/app/build/outputs/bundle/release/app-release.aab \
-            artifacts/SajangnimSettlement-1.0.11-AD-ID-FIX.aab
+            artifacts/SajangnimSettlement-1.0.11-VERIFIED-LAYOUT-FIX.aab
 
           if [ -f project/SajangnimSettlement/app/build/outputs/mapping/release/mapping.txt ]; then
             cp project/SajangnimSettlement/app/build/outputs/mapping/release/mapping.txt \
@@ -84,5 +84,5 @@ jobs:
       - name: Upload APK, AAB and mapping
         uses: actions/upload-artifact@v4
         with:
-          name: SajangnimSettlement-1.0.11-AD-ID-FIX
+          name: SajangnimSettlement-1.0.11-VERIFIED-LAYOUT-FIX
           path: artifacts/*
