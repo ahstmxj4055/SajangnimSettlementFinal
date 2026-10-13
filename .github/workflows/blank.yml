@@ -1,4 +1,4 @@
-name: Sajangnim Settlement 1.1.0 Document Preview PDF Fix Build
+name: Sajangnim Settlement 1.1.0 Home Docs Merge Build
 
 on:
   workflow_dispatch:
@@ -38,7 +38,7 @@ jobs:
         run: |
           set -e
 
-          ZIP_FILE="SajangnimSettlement_Android_v91_DOCUMENT_PREVIEW_PDF_FIX_1.1.0.zip"
+          ZIP_FILE="SajangnimSettlement_Android_v93_HOME_DOCS_MERGE_1.1.0.zip"
 
           test -f "$ZIP_FILE" || \
             (echo "Missing $ZIP_FILE" && exit 1)
@@ -71,7 +71,6 @@ jobs:
 
       - name: Build signed Release APK and AAB
         working-directory: project/SajangnimSettlement
-
         env:
           KEYSTORE_FILE: release-key.jks
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -83,7 +82,6 @@ jobs:
 
       - name: Collect APK, AAB and mapping
         shell: bash
-
         run: |
           set -e
 
@@ -91,11 +89,11 @@ jobs:
 
           cp \
             project/SajangnimSettlement/app/build/outputs/apk/release/app-release.apk \
-            artifacts/SajangnimSettlement-1.1.0-DOCUMENT-PDF-FIX.apk
+            artifacts/SajangnimSettlement-1.1.0-HOME-DOCS-MERGE.apk
 
           cp \
             project/SajangnimSettlement/app/build/outputs/bundle/release/app-release.aab \
-            artifacts/SajangnimSettlement-1.1.0-DOCUMENT-PDF-FIX.aab
+            artifacts/SajangnimSettlement-1.1.0-HOME-DOCS-MERGE.aab
 
           if [ -f \
             project/SajangnimSettlement/app/build/outputs/mapping/release/mapping.txt ]; then
@@ -107,7 +105,6 @@ jobs:
 
       - name: Upload APK, AAB and mapping
         uses: actions/upload-artifact@v4
-
         with:
-          name: SajangnimSettlement-1.1.0-DOCUMENT-PDF-FIX
+          name: SajangnimSettlement-1.1.0-HOME-DOCS-MERGE
           path: artifacts/*
