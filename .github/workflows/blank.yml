@@ -1,4 +1,4 @@
-name: Sajangnim Settlement 1.1.0 Layout Refine Build
+name: Sajangnim Settlement 1.1.0 Verified Layout Build
 
 on:
   workflow_dispatch:
@@ -38,7 +38,7 @@ jobs:
         run: |
           set -e
 
-          ZIP_FILE="SajangnimSettlement_Android_v94_LAYOUT_REFINE_1.1.0.zip"
+          ZIP_FILE="SajangnimSettlement_Android_v96_VERIFIED_LAYOUT_1.1.0.zip"
 
           test -f "$ZIP_FILE" || \
             (echo "Missing $ZIP_FILE" && exit 1)
@@ -91,11 +91,11 @@ jobs:
 
           cp \
             project/SajangnimSettlement/app/build/outputs/apk/release/app-release.apk \
-            artifacts/SajangnimSettlement-1.1.0-LAYOUT-REFINE.apk
+            artifacts/SajangnimSettlement-1.1.0-VERIFIED-LAYOUT.apk
 
           cp \
             project/SajangnimSettlement/app/build/outputs/bundle/release/app-release.aab \
-            artifacts/SajangnimSettlement-1.1.0-LAYOUT-REFINE.aab
+            artifacts/SajangnimSettlement-1.1.0-VERIFIED-LAYOUT.aab
 
           if [ -f \
             project/SajangnimSettlement/app/build/outputs/mapping/release/mapping.txt ]; then
@@ -109,5 +109,5 @@ jobs:
         uses: actions/upload-artifact@v4
 
         with:
-          name: SajangnimSettlement-1.1.0-LAYOUT-REFINE
+          name: SajangnimSettlement-1.1.0-VERIFIED-LAYOUT
           path: artifacts/*
