@@ -1,4 +1,4 @@
-name: Sajangnim Settlement 1.1.0 Unified Headers Build
+name: Sajangnim Settlement 1.1.0 Preview Notice Fix Build
 
 on:
   workflow_dispatch:
@@ -38,7 +38,7 @@ jobs:
         run: |
           set -e
 
-          ZIP_FILE="SajangnimSettlement_Android_v99_UNIFIED_HEADERS_1.1.0.zip"
+          ZIP_FILE="SajangnimSettlement_Android_v100_PREVIEW_NOTICE_FIX_1.1.0.zip"
 
           test -f "$ZIP_FILE" || \
             (echo "Missing $ZIP_FILE" && exit 1)
@@ -71,7 +71,6 @@ jobs:
 
       - name: Build signed Release APK and AAB
         working-directory: project/SajangnimSettlement
-
         env:
           KEYSTORE_FILE: release-key.jks
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -90,11 +89,11 @@ jobs:
 
           cp \
             project/SajangnimSettlement/app/build/outputs/apk/release/app-release.apk \
-            artifacts/SajangnimSettlement-1.1.0-UNIFIED-HEADERS.apk
+            artifacts/SajangnimSettlement-1.1.0-PREVIEW-NOTICE-FIX.apk
 
           cp \
             project/SajangnimSettlement/app/build/outputs/bundle/release/app-release.aab \
-            artifacts/SajangnimSettlement-1.1.0-UNIFIED-HEADERS.aab
+            artifacts/SajangnimSettlement-1.1.0-PREVIEW-NOTICE-FIX.aab
 
           if [ -f \
             project/SajangnimSettlement/app/build/outputs/mapping/release/mapping.txt ]; then
@@ -108,5 +107,5 @@ jobs:
         uses: actions/upload-artifact@v4
 
         with:
-          name: SajangnimSettlement-1.1.0-UNIFIED-HEADERS
+          name: SajangnimSettlement-1.1.0-PREVIEW-NOTICE-FIX
           path: artifacts/*
