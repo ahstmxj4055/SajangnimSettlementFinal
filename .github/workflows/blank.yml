@@ -1,5 +1,5 @@
 
-name: Sajangnim Settlement v103 Fixed Build
+name: Sajangnim Settlement v104 Build
 
 on:
   workflow_dispatch:
@@ -32,17 +32,25 @@ jobs:
         with:
           gradle-version: '8.11.1'
 
-      - name: Extract v103 project
+      - name: Extract v104 project
         shell: bash
         run: |
           set -euo pipefail
-          ZIP_FILE="SajangnimSettlement_Android_v103_DIRECT_PDF_PNG_SAVE_1.1.0.zip"
-          test -f "$ZIP_FILE" || { echo "Missing ZIP: $ZIP_FILE"; exit 1; }
+          ZIP_FILE="SajangnimSettlement_Android_v104_EXPORT_FIX_1.1.0.zip"
+
+          test -f "$ZIP_FILE" || {
+            echo "Missing ZIP: $ZIP_FILE"
+            exit 1
+          }
+
           mkdir -p project
           unzip -q "$ZIP_FILE" -d project
+
           test -f project/SajangnimSettlement/settings.gradle.kts
           test -f project/SajangnimSettlement/app/build.gradle.kts
-          grep -E 'versionCode|versionName' project/SajangnimSettlement/app/build.gradle.kts
+
+          grep -E 'versionCode|versionName' \
+            project/SajangnimSettlement/app/build.gradle.kts
 
       - name: Restore release keystore
         working-directory: project/SajangnimSettlement
@@ -51,9 +59,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -n "$KEYSTORE_BASE64" || { echo "Missing KEYSTORE_BASE64 secret"; exit 1; }
+
+          test -n "$KEYSTORE_BASE64" || {
+            echo "Missing KEYSTORE_BASE64 secret"
+            exit 1
+          }
+
           mkdir -p app
-          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > app/release-key.jks
+
+          printf '%s' "$KEYSTORE_BASE64" | \
+            base64 --decode > app/release-key.jks
+
           test -s app/release-key.jks
 
       - name: Build signed APK and AAB
@@ -63,12 +79,13 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: gradle assembleRelease bundleRelease --stacktrace
+        run: |
+          gradle assembleRelease bundleRelease --stacktrace
 
       - name: Upload APK and AAB
         uses: actions/upload-artifact@v4
         with:
-          name: SajangnimSettlement-v103-fixed
+          name: SajangnimSettlement-v104
           if-no-files-found: error
           path: |
             project/SajangnimSettlement/app/build/outputs/apk/release/*.apk
