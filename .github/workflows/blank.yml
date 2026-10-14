@@ -1,5 +1,5 @@
 
-name: Sajangnim Settlement v106 Build
+name: Sajangnim Settlement v109 Build
 
 on:
   workflow_dispatch:
@@ -25,18 +25,20 @@ jobs:
           log-accepted-android-sdk-licenses: 'false'
 
       - name: Install Android API 36
-        run: sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+        run: |
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
       - name: Setup Gradle 8.11.1
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.11.1'
 
-      - name: Extract v106 project
+      - name: Extract v109 project
         shell: bash
         run: |
           set -euo pipefail
-          ZIP_FILE="SajangnimSettlement_Android_v106_MEMO_LAYOUT_1.1.0.zip"
+
+          ZIP_FILE="SajangnimSettlement_Android_v109_PREVIEW_BUTTON_COLORS_1.1.0.zip"
 
           test -f "$ZIP_FILE" || {
             echo "Missing ZIP: $ZIP_FILE"
@@ -49,14 +51,11 @@ jobs:
           test -f project/SajangnimSettlement/settings.gradle.kts
           test -f project/SajangnimSettlement/app/build.gradle.kts
 
-          grep -E 'versionCode|versionName' \
-            project/SajangnimSettlement/app/build.gradle.kts
-
       - name: Restore release keystore
         working-directory: project/SajangnimSettlement
+        shell: bash
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-        shell: bash
         run: |
           set -euo pipefail
 
@@ -66,10 +65,7 @@ jobs:
           }
 
           mkdir -p app
-
-          printf '%s' "$KEYSTORE_BASE64" | \
-            base64 --decode > app/release-key.jks
-
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > app/release-key.jks
           test -s app/release-key.jks
 
       - name: Build signed APK and AAB
@@ -85,7 +81,7 @@ jobs:
       - name: Upload APK and AAB
         uses: actions/upload-artifact@v4
         with:
-          name: SajangnimSettlement-v106
+          name: SajangnimSettlement-v109
           if-no-files-found: error
           path: |
             project/SajangnimSettlement/app/build/outputs/apk/release/*.apk
