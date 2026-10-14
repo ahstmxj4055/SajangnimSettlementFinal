@@ -1,4 +1,4 @@
-name: Sajangnim Settlement 1.1.0 Preview Notice Fix Build
+name: Sajangnim Settlement 1.1.0 Root Cause Fix Build
 
 on:
   workflow_dispatch:
@@ -38,7 +38,7 @@ jobs:
         run: |
           set -e
 
-          ZIP_FILE="SajangnimSettlement_Android_v100_PREVIEW_NOTICE_FIX_1.1.0.zip"
+          ZIP_FILE="SajangnimSettlement_Android_v101_ROOT_CAUSE_FIX_1.1.0.zip"
 
           test -f "$ZIP_FILE" || \
             (echo "Missing $ZIP_FILE" && exit 1)
@@ -89,11 +89,11 @@ jobs:
 
           cp \
             project/SajangnimSettlement/app/build/outputs/apk/release/app-release.apk \
-            artifacts/SajangnimSettlement-1.1.0-PREVIEW-NOTICE-FIX.apk
+            artifacts/SajangnimSettlement-1.1.0-ROOT-CAUSE-FIX.apk
 
           cp \
             project/SajangnimSettlement/app/build/outputs/bundle/release/app-release.aab \
-            artifacts/SajangnimSettlement-1.1.0-PREVIEW-NOTICE-FIX.aab
+            artifacts/SajangnimSettlement-1.1.0-ROOT-CAUSE-FIX.aab
 
           if [ -f \
             project/SajangnimSettlement/app/build/outputs/mapping/release/mapping.txt ]; then
@@ -105,7 +105,6 @@ jobs:
 
       - name: Upload APK, AAB and mapping
         uses: actions/upload-artifact@v4
-
         with:
-          name: SajangnimSettlement-1.1.0-PREVIEW-NOTICE-FIX
+          name: SajangnimSettlement-1.1.0-ROOT-CAUSE-FIX
           path: artifacts/*
