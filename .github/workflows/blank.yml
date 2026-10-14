@@ -1,5 +1,5 @@
 
-name: Sajangnim Settlement v104 Build
+name: Sajangnim Settlement v106 Build
 
 on:
   workflow_dispatch:
@@ -32,11 +32,11 @@ jobs:
         with:
           gradle-version: '8.11.1'
 
-      - name: Extract v104 project
+      - name: Extract v106 project
         shell: bash
         run: |
           set -euo pipefail
-          ZIP_FILE="SajangnimSettlement_Android_v104_EXPORT_FIX_1.1.0.zip"
+          ZIP_FILE="SajangnimSettlement_Android_v106_MEMO_LAYOUT_1.1.0.zip"
 
           test -f "$ZIP_FILE" || {
             echo "Missing ZIP: $ZIP_FILE"
@@ -85,7 +85,7 @@ jobs:
       - name: Upload APK and AAB
         uses: actions/upload-artifact@v4
         with:
-          name: SajangnimSettlement-v104
+          name: SajangnimSettlement-v106
           if-no-files-found: error
           path: |
             project/SajangnimSettlement/app/build/outputs/apk/release/*.apk
