@@ -1,85 +1,16 @@
-name: Sajangnim Settlement Auto ZIP FIXED
+
+name: Sajangnim Settlement v122 Build
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '*.zip'
   workflow_dispatch:
-
-permissions:
-  contents: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository with previous commit
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
-      - name: Find newly uploaded ZIP
-        shell: bash
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          import os, subprocess, pathlib, zipfile, re
-          if os.environ['EVENT_NAME'] == 'push':
-              changed = subprocess.check_output(['git','diff-tree','--no-commit-id','--name-only','--diff-filter=AM','-r','HEAD'], text=True).splitlines()
-              files = [pathlib.Path(p) for p in changed if '/' not in p and p.lower().endswith('.zip')]
-              if len(files) != 1:
-                  raise SystemExit(f'Upload exactly one ZIP per commit. Changed ZIPs: {[str(f) for f in files]}')
-              path = files[0]
-          else:
-              files = [p for p in pathlib.Path('.').glob('*.zip') if p.is_file()]
-              if not files:
-                  raise SystemExit('No ZIP in repository root')
-              # Manual fallback: choose the ZIP from the most recent commit touching a ZIP.
-              recent = subprocess.check_output(['git','log','--format=','--name-only','--diff-filter=AM','--','*.zip'], text=True).splitlines()
-              path = next((pathlib.Path(p) for p in recent if '/' not in p and pathlib.Path(p).is_file()), None)
-              if path is None:
-                  raise SystemExit('No ZIP found in commit history')
-          def inspect(p):
-              if not p.is_file():
-                  return None
-              try:
-                  with zipfile.ZipFile(p) as z:
-                      entries = z.namelist()
-                      if any(n.startswith('/') or '..' in pathlib.PurePosixPath(n).parts for n in entries):
-                          return None
-                      for setting in entries:
-                          if setting == 'settings.gradle.kts' or setting.endswith('/settings.gradle.kts'):
-                              root = setting.rsplit('/', 1)[0] if '/' in setting else ''
-                              gradle = (root + '/' if root else '') + 'app/build.gradle.kts'
-                              if gradle in entries:
-                                  return root, gradle
-              except (OSError, zipfile.BadZipFile):
-                  pass
-              return None
-          found = inspect(path)
-          if not found and os.environ['EVENT_NAME'] != 'push':
-              for name in recent:
-                  candidate = pathlib.Path(name)
-                  if '/' not in name and candidate.is_file():
-                      found = inspect(candidate)
-                      if found:
-                          path = candidate
-                          break
-          if not found:
-              raise SystemExit(f'Uploaded ZIP is not a valid Android project: {path}. Check ZIP contents.')
-          root, gradle_path = found
-          with zipfile.ZipFile(path) as z:
-              match = re.search(r'versionCode\s*=\s*(\d+)', z.read(gradle_path).decode('utf-8'))
-              version = match.group(1) if match else 'unknown'
-              z.extractall('project')
-          project_dir = 'project/' + root if root else 'project'
-          print(f'BUILDING ZIP: {path}, project={project_dir}, versionCode={version}')
-          with open(os.environ['GITHUB_ENV'],'a') as env:
-              env.write(f'PROJECT_DIR={project_dir}\nBUILD_VERSION={version}\n')
-          PY
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Setup Java 17
         uses: actions/setup-java@v4
@@ -94,42 +25,70 @@ jobs:
           log-accepted-android-sdk-licenses: 'false'
 
       - name: Install Android API 36
-        run: sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+        run: |
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
       - name: Setup Gradle 8.11.1
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.11.1'
 
+      - name: Extract v122 project
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ZIP_FILE="SajangnimSettlement_Android_v122_CALENDAR_COLOR_ONLY_1.1.0.zip"
+
+          test -f "$ZIP_FILE" || {
+            echo "Missing ZIP: $ZIP_FILE"
+            exit 1
+          }
+
+          mkdir -p project
+          unzip -q "$ZIP_FILE" -d project
+
+          test -f project/SajangnimSettlement/settings.gradle.kts
+          test -f project/SajangnimSettlement/app/build.gradle.kts
+
+          grep -E 'versionCode|versionName' \
+            project/SajangnimSettlement/app/build.gradle.kts
+
       - name: Restore release keystore
+        working-directory: project/SajangnimSettlement
         shell: bash
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
           set -euo pipefail
-          test -n "$KEYSTORE_BASE64" || { echo 'Missing KEYSTORE_BASE64'; exit 1; }
-          mkdir -p "$PROJECT_DIR/app"
-          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$PROJECT_DIR/app/release-key.jks"
-          test -s "$PROJECT_DIR/app/release-key.jks"
+
+          test -n "$KEYSTORE_BASE64" || {
+            echo "Missing KEYSTORE_BASE64 secret"
+            exit 1
+          }
+
+          mkdir -p app
+          printf '%s' "$KEYSTORE_BASE64" \
+            | base64 --decode > app/release-key.jks
+
+          test -s app/release-key.jks
 
       - name: Build signed APK and AAB
-        shell: bash
+        working-directory: project/SajangnimSettlement
         env:
           KEYSTORE_FILE: release-key.jks
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          set -euo pipefail
-          cd "$PROJECT_DIR"
           gradle assembleRelease bundleRelease --stacktrace
 
       - name: Upload APK and AAB
         uses: actions/upload-artifact@v4
         with:
-          name: SajangnimSettlement-${{ env.BUILD_VERSION }}-${{ github.run_number }}
+          name: SajangnimSettlement-v122
           if-no-files-found: error
           path: |
-            ${{ env.PROJECT_DIR }}/app/build/outputs/apk/release/*.apk
-            ${{ env.PROJECT_DIR }}/app/build/outputs/bundle/release/*.aab
-            ${{ env.PROJECT_DIR }}/app/build/outputs/mapping/release/mapping.txt
+            project/SajangnimSettlement/app/build/outputs/apk/release/*.apk
+            project/SajangnimSettlement/app/build/outputs/bundle/release/*.aab
+            project/SajangnimSettlement/app/build/outputs/mapping/release/mapping.txt
