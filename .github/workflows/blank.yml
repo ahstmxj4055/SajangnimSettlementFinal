@@ -1,4 +1,4 @@
-name: Sajangnim Settlement Auto New ZIP
+name: Sajangnim Settlement Auto ZIP FIXED
 
 on:
   push:
@@ -42,25 +42,43 @@ jobs:
               path = next((pathlib.Path(p) for p in recent if '/' not in p and pathlib.Path(p).is_file()), None)
               if path is None:
                   raise SystemExit('No ZIP found in commit history')
-          if not path.is_file():
-              raise SystemExit(f'Missing ZIP: {path}')
+          def inspect(p):
+              if not p.is_file():
+                  return None
+              try:
+                  with zipfile.ZipFile(p) as z:
+                      entries = z.namelist()
+                      if any(n.startswith('/') or '..' in pathlib.PurePosixPath(n).parts for n in entries):
+                          return None
+                      for setting in entries:
+                          if setting == 'settings.gradle.kts' or setting.endswith('/settings.gradle.kts'):
+                              root = setting.rsplit('/', 1)[0] if '/' in setting else ''
+                              gradle = (root + '/' if root else '') + 'app/build.gradle.kts'
+                              if gradle in entries:
+                                  return root, gradle
+              except (OSError, zipfile.BadZipFile):
+                  pass
+              return None
+          found = inspect(path)
+          if not found and os.environ['EVENT_NAME'] != 'push':
+              for name in recent:
+                  candidate = pathlib.Path(name)
+                  if '/' not in name and candidate.is_file():
+                      found = inspect(candidate)
+                      if found:
+                          path = candidate
+                          break
+          if not found:
+              raise SystemExit(f'Uploaded ZIP is not a valid Android project: {path}. Check ZIP contents.')
+          root, gradle_path = found
           with zipfile.ZipFile(path) as z:
-              entries = z.namelist()
-              if any(p.startswith('/') or '..' in pathlib.PurePosixPath(p).parts for p in entries):
-                  raise SystemExit('Unsafe ZIP paths')
-              settings = [p for p in entries if p.endswith('/settings.gradle.kts')]
-              if len(settings) != 1:
-                  raise SystemExit('Expected one Android project in ZIP')
-              root = settings[0].rsplit('/',1)[0]
-              gradle_path = root + '/app/build.gradle.kts'
-              if gradle_path not in entries:
-                  raise SystemExit('Missing app/build.gradle.kts')
               match = re.search(r'versionCode\s*=\s*(\d+)', z.read(gradle_path).decode('utf-8'))
               version = match.group(1) if match else 'unknown'
               z.extractall('project')
-          print(f'BUILDING UPLOADED ZIP: {path}, versionCode={version}')
+          project_dir = 'project/' + root if root else 'project'
+          print(f'BUILDING ZIP: {path}, project={project_dir}, versionCode={version}')
           with open(os.environ['GITHUB_ENV'],'a') as env:
-              env.write(f'PROJECT_DIR=project/{root}\nBUILD_VERSION={version}\n')
+              env.write(f'PROJECT_DIR={project_dir}\nBUILD_VERSION={version}\n')
           PY
 
       - name: Setup Java 17
