@@ -1,5 +1,5 @@
 
-name: Sajangnim Settlement v123 Build
+name: Sajangnim Settlement v124 Build
 
 on:
   workflow_dispatch:
@@ -33,15 +33,15 @@ jobs:
         with:
           gradle-version: '8.11.1'
 
-      - name: Extract v123 project
+      - name: Extract v124 project
         shell: bash
         run: |
           set -euo pipefail
 
-          ZIP_FILE="SajangnimSettlement_Android_v123_STABILITY_1.1.0.zip"
+          ZIP_FILE="SajangnimSettlement_Android_v124_RESTORE_MODAL_1.1.0.zip"
 
           test -f "$ZIP_FILE" || {
-            echo "ZIP file not found: $ZIP_FILE"
+            echo "Missing ZIP: $ZIP_FILE"
             exit 1
           }
 
@@ -86,7 +86,7 @@ jobs:
       - name: Upload APK and AAB
         uses: actions/upload-artifact@v4
         with:
-          name: SajangnimSettlement-v123
+          name: SajangnimSettlement-v124
           if-no-files-found: error
           path: |
             project/SajangnimSettlement/app/build/outputs/apk/release/*.apk
