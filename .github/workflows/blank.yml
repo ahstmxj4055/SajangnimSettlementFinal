@@ -1,5 +1,5 @@
 
-name: Sajangnim Settlement v115 Fixed Build
+name: Sajangnim Settlement v117 Fixed Build
 
 on:
   workflow_dispatch:
@@ -33,12 +33,12 @@ jobs:
         with:
           gradle-version: '8.11.1'
 
-      - name: Extract v115 project
+      - name: Extract v117 project
         shell: bash
         run: |
           set -euo pipefail
 
-          ZIP_FILE="SajangnimSettlement_Android_v115_EXCEL_REPAIR_1.1.0.zip"
+          ZIP_FILE="SajangnimSettlement_Android_v117_EXCEL_COMPAT_THEME_FIX_1.1.0.zip"
 
           test -f "$ZIP_FILE" || {
             echo "Missing ZIP: $ZIP_FILE"
@@ -68,9 +68,7 @@ jobs:
           }
 
           mkdir -p app
-          printf '%s' "$KEYSTORE_BASE64" | \
-            base64 --decode > app/release-key.jks
-
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > app/release-key.jks
           test -s app/release-key.jks
 
       - name: Build signed APK and AAB
@@ -86,7 +84,7 @@ jobs:
       - name: Upload APK and AAB
         uses: actions/upload-artifact@v4
         with:
-          name: SajangnimSettlement-v115-fixed
+          name: SajangnimSettlement-v117-fixed
           if-no-files-found: error
           path: |
             project/SajangnimSettlement/app/build/outputs/apk/release/*.apk
