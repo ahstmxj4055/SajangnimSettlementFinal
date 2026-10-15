@@ -1,8 +1,11 @@
 
-name: Sajangnim Settlement v119 Fixed Build
+name: Sajangnim Settlement Auto Build
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - '*.zip'
 
 jobs:
   build:
@@ -11,6 +14,101 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Find latest project ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          import glob
+          import os
+          import re
+          import zipfile
+
+          choices = []
+
+          for path in glob.glob("*.zip"):
+              try:
+                  with zipfile.ZipFile(path) as z:
+                      names = z.namelist()
+
+                      gradle = next(
+                          (n for n in names
+                           if n.endswith("/app/build.gradle.kts")),
+                          None
+                      )
+
+                      settings = next(
+                          (n for n in names
+                           if n.endswith("/settings.gradle.kts")),
+                          None
+                      )
+
+                      if not gradle or not settings:
+                          continue
+
+                      data = z.read(gradle).decode("utf-8")
+
+                      match = re.search(
+                          r"versionCode\s*=\s*(\d+)",
+                          data
+                      )
+
+                      if match:
+                          choices.append(
+                              (int(match.group(1)), path)
+                          )
+
+              except (
+                  OSError,
+                  zipfile.BadZipFile,
+                  UnicodeDecodeError
+              ):
+                  continue
+
+          if not choices:
+              raise SystemExit(
+                  "No valid Android project ZIP found"
+              )
+
+          version, path = max(choices)
+
+          print(
+              f"Selected ZIP: {path}, "
+              f"versionCode: {version}"
+          )
+
+          with zipfile.ZipFile(path) as z:
+              z.extractall("project")
+
+          candidates = glob.glob(
+              "project/**/settings.gradle.kts",
+              recursive=True
+          )
+
+          if len(candidates) != 1:
+              raise SystemExit(
+                  "Expected exactly one Android project"
+              )
+
+          project = os.path.dirname(candidates[0])
+
+          if not os.path.isfile(
+              project + "/app/build.gradle.kts"
+          ):
+              raise SystemExit(
+                  "Missing app/build.gradle.kts"
+              )
+
+          with open(
+              os.environ["GITHUB_ENV"], "a"
+          ) as f:
+              f.write(
+                  f"PROJECT_DIR={project}\n"
+                  f"BUILD_VERSION={version}\n"
+              )
+          PY
 
       - name: Setup Java 17
         uses: actions/setup-java@v4
@@ -26,33 +124,16 @@ jobs:
 
       - name: Install Android API 36
         run: |
-          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+          sdkmanager "platform-tools" \
+            "platforms;android-36" \
+            "build-tools;36.0.0"
 
       - name: Setup Gradle 8.11.1
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.11.1'
 
-      - name: Extract v119 project
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          ZIP_FILE="SajangnimSettlement_Android_v119_CALENDAR_ICON_FIX_1.1.0.zip"
-
-          test -f "$ZIP_FILE" || {
-            echo "Missing ZIP: $ZIP_FILE"
-            exit 1
-          }
-
-          mkdir -p project
-          unzip -q "$ZIP_FILE" -d project
-
-          test -f project/SajangnimSettlement/settings.gradle.kts
-          test -f project/SajangnimSettlement/app/build.gradle.kts
-
-      - name: Restore release keystore
-        working-directory: project/SajangnimSettlement
+      - name: Restore signing key
         shell: bash
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
@@ -60,30 +141,39 @@ jobs:
           set -euo pipefail
 
           test -n "$KEYSTORE_BASE64" || {
-            echo "Missing KEYSTORE_BASE64 secret"
+            echo "Missing KEYSTORE_BASE64"
             exit 1
           }
 
-          mkdir -p app
-          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > app/release-key.jks
-          test -s app/release-key.jks
+          mkdir -p "$PROJECT_DIR/app"
+
+          printf '%s' "$KEYSTORE_BASE64" \
+            | base64 --decode \
+            > "$PROJECT_DIR/app/release-key.jks"
+
+          test -s "$PROJECT_DIR/app/release-key.jks"
 
       - name: Build signed APK and AAB
-        working-directory: project/SajangnimSettlement
+        shell: bash
         env:
           KEYSTORE_FILE: release-key.jks
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          gradle assembleRelease bundleRelease --stacktrace
+          set -euo pipefail
+
+          cd "$PROJECT_DIR"
+
+          gradle assembleRelease bundleRelease \
+            --stacktrace
 
       - name: Upload APK and AAB
         uses: actions/upload-artifact@v4
         with:
-          name: SajangnimSettlement-v119
+          name: SajangnimSettlement-build-${{ env.BUILD_VERSION }}
           if-no-files-found: error
           path: |
-            project/SajangnimSettlement/app/build/outputs/apk/release/*.apk
-            project/SajangnimSettlement/app/build/outputs/bundle/release/*.aab
-            project/SajangnimSettlement/app/build/outputs/mapping/release/mapping.txt
+            ${{ env.PROJECT_DIR }}/app/build/outputs/apk/release/*.apk
+            ${{ env.PROJECT_DIR }}/app/build/outputs/bundle/release/*.aab
+            ${{ env.PROJECT_DIR }}/app/build/outputs/mapping/release/mapping.txt
